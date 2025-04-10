@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Visualizer</title>
+    <style>
+        :root {
+            --primary-color: #00ff00;
+            --primary-dark: #00cc00;
+            --bg-dark: #1a1a1a;
+            --bg-darker: #2a2a2a;
+            --text-light: #ffffff;
+            --text-muted: #cccccc;
+            --border-color: #444;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .controls-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: center;
+            transition: all var(--transition-speed) ease;
+            padding: 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .controls-container.collapsed {
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .control-group {
+            background-color: var(--bg-darker);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            min-width: 180px;
+            flex: 1;
+            max-width: 250px;
+            transition: all var(--transition-speed) ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .control-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px var(--shadow-color);
+        }
+
+        .control-group.collapsed {
+            display: none;
+        }
+
+        .control-group h3 {
+            margin: 0 0 15px 0;
+            color: var(--primary-color);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 6px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-row label {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .control-row span {
+            min-width: 40px;
+            font-size: 13px;
+            color: var(--primary-color);
+            text-align: right;
+            font-weight: 600;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 6px;
+            margin: 3px 0;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ff00' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+            padding-right: 32px;
+        }
+
+        select:hover {
+            background-color: var(--bg-darker);
+            border-color: var(--primary-color);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            background: var(--primary-dark);
+            box-shadow: 0 3px 6px var(--shadow-color);
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            min-width: 100px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 13px;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        #visualizer {
+            background-color: var(--bg-darker);
+            border-radius: 12px;
+            box-shadow: 0 6px 12px var(--shadow-color);
+            border: 1px solid var(--border-color);
+            margin: 20px 0;
+        }
+
+        .listener-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: var(--bg-darker);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow-color);
+            width: 100%;
+            max-width: 250px;
+            transition: all var(--transition-speed) ease;
+            border: 1px solid var(--border-color);
+            flex: 1;
+        }
+
+        .listener-controls:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px var(--shadow-color);
+        }
+
+        .listener-controls.collapsed {
+            height: 0;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        .listener-controls h3 {
+            margin: 0 0 15px 0;
+            color: var(--primary-color);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 6px;
+            text-align: center;
+        }
+
+        .listener-control-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .listener-control-row label {
+            flex: 1;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .listener-control-row span {
+            min-width: 40px;
+            font-size: 13px;
+            color: var(--primary-color);
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 10px;
+            padding: 0 20px;
+        }
+
+        .controls-header button {
+            margin: 0;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0;
+            padding: 0 20px;
+        }
+
+        .toggle-button {
+            background-color: var(--bg-darker);
+            color: var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-bottom: 10px;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: auto;
+        }
+
+        .toggle-button:hover {
+            background-color: var(--bg-dark);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .toggle-button.collapsed::after {
+            content: '▼';
+            margin-left: 6px;
+            font-size: 10px;
+        }
+
+        .toggle-button:not(.collapsed)::after {
+            content: '▲';
+            margin-left: 6px;
+            font-size: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .controls-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .control-group {
+                width: 100%;
+                max-width: 320px;
+            }
+
+            .controls-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .controls-header button {
+                width: 100%;
+                max-width: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls-header">
+        <button id="startButton">Start</button>
+        <button class="toggle-button" id="topControlsToggle">Controls</button>
+        <button id="stopButton">Stop</button>
+    </div>
+
+    <div class="controls-container" id="topControls">
+        <div class="control-group">
+            <h3>Oscillator</h3>
+            <div class="control-row">
+                <label for="oscillatorType">Type:</label>
+                <select id="oscillatorType">
+                    <option value="sine">Sine</option>
+                    <option value="square">Square</option>
+                    <option value="triangle">Triangle</option>
+                    <option value="sawtooth">Sawtooth</option>
+                </select>
+            </div>
+            <div class="control-row">
+                <label for="volume">Volume:</label>
+                <input type="range" id="Volume" min="0.1" max="1" value="1" step="0.1"/>
+                <span id="VolVal">1</span>
+        </div>
+    </div>
+
+    <!-- ADD FREQUENCY OR SPACIAL RADIO OPTIONS -->
+
+        <div class="control-group">
+            <h3>LFO</h3>
+            <div class="control-row">
+                <label for="lfoType">Type:</label>
+                <select id="lfoType">
+                    <option value="sine">Sine</option>
+                    <option value="square">Square</option>
+                    <option value="triangle">Triangle</option>
+                    <option value="sawtooth">Sawtooth</option>
+                </select>
+            </div>
+            <div class="control-row">
+                <label for="staticLfo">LFO 2 Frequency:</label>
+                <input type="range" id="staticLfoFrequency" min="0.1" max="1" step="0.1" value="0.5" />
+                <span id="staticLfoFrequencyValue">0.5</span>
+        </div>
+        </div>
+
+        <div class="control-group">
+            <h3>Panner</h3>
+            <div class="control-row">
+                <label for="distanceModel">Model:</label>
+                <select id="distanceModel">
+                    <option value="linear">Linear</option>
+                    <option value="inverse">Inverse</option>
+                    <option value="exponential">Exponential</option>
+                </select>
+            </div>
+            <div class="control-row">
+                <label for="maxDistance">Max Distance:</label>
+                <input type="range" id="maxDistance" min="1" max="1000" value="1000" step="1">
+                <span id="maxDistanceValue">1000</span>
+            </div>
+            <div class="control-row">
+                <label for="rolloffFactor">Rolloff:</label>
+                <input type="range" id="rolloffFactor" min="0.1" max="10" step="0.1" value="1">
+                <span id="rolloffFactorValue">1</span>
+            </div>
+        </div>
+
+        <!-- <div class="listener-controls" id="listenerControls">
+            <h3>Listener Position</h3>
+            <div class="listener-control-row">
+                <label for="listenerX">X:</label>
+                <input type="range" id="listenerX" min="-100" max="100" value="0">
+                <span id="listenerXValue">0</span>
+            </div>
+            <div class="listener-control-row">
+                <label for="listenerY">Y:</label>
+                <input type="range" id="listenerY" min="-100" max="100" value="0">
+                <span id="listenerYValue">0</span>
+            </div>
+            <div class="listener-control-row">
+                <label for="listenerZ">Z:</label>
+                <input type="range" id="listenerZ" min="-100" max="100" value="0">
+                <span id="listenerZValue">0</span>
+            </div>
+        </div> -->
+
+        <!-- <div class="control-group">
+            <h3>Listener Orientation</h3>
+            <div class="control-row">
+                <label for="listenerForwardX">Forward X:</label>
+                <input type="range" id="listenerForwardX" min="-1" max="1" step="0.1" value="0">
+                <span id="listenerForwardXValue">0</span>
+            </div>
+            <div class="control-row">
+                <label for="listenerForwardY">Forward Y:</label>
+                <input type="range" id="listenerForwardY" min="-1" max="1" step="0.1" value="0">
+                <span id="listenerForwardYValue">0</span>
+            </div>
+            <div class="control-row">
+                <label for="listenerForwardZ">Forward Z:</label>
+                <input type="range" id="listenerForwardZ" min="-1" max="1" step="0.1" value="-1">
+                <span id="listenerForwardZValue">-1</span>
+            </div>
+            <div class="control-row">
+                <label for="listenerUpX">Up X:</label>
+                <input type="range" id="listenerUpX" min="-1" max="1" step="0.1" value="0">
+                <span id="listenerUpXValue">0</span>
+            </div>
+            <div class="control-row">
+                <label for="listenerUpY">Up Y:</label>
+                <input type="range" id="listenerUpY" min="-1" max="1" step="0.1" value="1">
+                <span id="listenerUpYValue">1</span>
+            </div>
+            <div class="control-row">
+                <label for="listenerUpZ">Up Z:</label>
+                <input type="range" id="listenerUpZ" min="-1" max="1" step="0.1" value="0">
+                <span id="listenerUpZValue">0</span>
+            </div>
+        </div> -->
+    </div>
+
+    <canvas id="visualizer"></canvas>
+
+    <script>
+        // Add toggle functionality
+        document.querySelectorAll('.toggle-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.id.replace('Toggle', '');
+                const target = document.getElementById(targetId);
+                button.classList.toggle('collapsed');
+                target.classList.toggle('collapsed');
+            });
+        });
+    </script>
+    <script src="pan.js"></script>
+</body>
+</html>
