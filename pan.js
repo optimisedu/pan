@@ -17,6 +17,7 @@ class AudioVisualizer {
         this.lfo = null;
         this.lfoGain = null;
         this.oscillator2 = null;
+          this.subosc = null
         this.normalizedX = null;
         this.normalizedY = null;
         this.panner = null;
@@ -42,8 +43,8 @@ class AudioVisualizer {
         document.getElementById('oscillatorType').addEventListener('change', (e) => this.updateOscillatorType(e.target.value));
         document.getElementById('lfoType').addEventListener('change', (e) => this.updateLFOType(e.target.value));
         document.getElementById('distanceModel').addEventListener('change', (e) => this.updateDistanceModel(e.target.value));
-        document.getElementById('maxDistance').addEventListener('input', (e) => this.updateMaxDistance(e.target.value));
-        document.getElementById('rolloffFactor').addEventListener('input', (e) => this.updateRolloffFactor(e.target.value));
+        document.getElementById('maxDistance').addEventListener('change', (e) => this.updateMaxDistance(e.target.value));
+        document.getElementById('rolloffFactor').addEventListener('change', (e) => this.updateRolloffFactor(e.target.value));
         
         // Add mouse event listeners
         this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
@@ -91,11 +92,11 @@ class AudioVisualizer {
         this.lpf.frequency.setTargetAtTime(filterCutoffFreq, this.audioContext.currentTime, 0.1);
         
         // Set filter Q based on Y position (5 to 15)
-        const dynamicQ = 5 + (Math.abs(this.normalizedY) * 10);
+        const dynamicQ = 1 + (Math.abs(this.normalizedY));
         this.lpf.Q.setValueAtTime(dynamicQ, this.audioContext.currentTime);
 
         // Update LFO gain based on Y position for more dramatic modulation
-        const lfoGainValue = 2000 + (Math.abs(this.normalizedY) * 3000); // Range from 2000 to 5000
+        const lfoGainValue = 2000 + (Math.abs(this.normalizedY) * 1000); // Range from 2000 to 5000
         this.lfoGain.gain.setTargetAtTime(lfoGainValue, this.audioContext.currentTime, 0.1);
     }
 
@@ -194,12 +195,20 @@ class AudioVisualizer {
             this.oscillator2.type = oscillatorType;
             this.oscillator2.frequency.setValueAtTime(220, this.audioContext.currentTime);
             this.oscillator2.start();
+          
+         
+            this.subosc = this.audioContext.createOscillator();
+
+         this.subosc.type = 'sine';
+    this.subosc.frequency.setValueAtTime(32, this.audioContext.currentTime);
+    this.subosc.start();
 
             // Create low-pass filter
             this.lpf = this.audioContext.createBiquadFilter();
             this.lpf.type = 'lowpass';
             this.lpf.frequency.setValueAtTime(2000, this.audioContext.currentTime); // Initial cutoff frequency
-            this.lpf.Q.setValueAtTime(10, this.audioContext.currentTime); // Moderate resonance for character
+            this.lpf.Q.setValueAtTime(1.25
+                                      , this.audioContext.currentTime); // Moderate resonance for character
             this.lpf.gain.setValueAtTime(0, this.audioContext.currentTime); // No gain needed for lowpass
 
             // Create LFO
@@ -220,7 +229,7 @@ class AudioVisualizer {
             this.panner = this.audioContext.createPanner();
             this.panner.panningModel = 'HRTF';
             this.panner.distanceModel = document.getElementById('distanceModel').value;
-            this.panner.refDistance = 0.5;
+            this.panner.refDistance = 1;
             this.panner.maxDistance = parseFloat(document.getElementById('maxDistance').value);
             this.panner.rolloffFactor = parseFloat(document.getElementById('rolloffFactor').value);
             this.panner.coneInnerAngle = 360;
@@ -243,7 +252,7 @@ class AudioVisualizer {
             this.oscillator2.connect(this.lpf);
             this.lpf.connect(this.gainNode);
             this.gainNode.connect(this.panner);
-            this.panner.connect(this.pannerGain);
+            this.panner.connect(this.pannerGain). con
             this.pannerGain.connect(this.analyser);
             this.analyser.connect(this.audioContext.destination);
 
