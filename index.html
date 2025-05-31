@@ -13,7 +13,7 @@
             --text-light: #ffffff;
             --text-muted: #cccccc;
             --border-color: #444;
-            --shadow-color: rgba(0, 0, 0, 0.2);
+            --shadow-color: rgba(1, 1, 1, 0.2);
             --transition-speed: 0.3s;
         }
 
@@ -71,11 +71,12 @@
         }
 
         .control-group h3 {
+          text-align: center;
             margin: 0 0 15px 0;
             color: var(--primary-color);
             font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.1em;
             font-weight: 600;
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 6px;
@@ -395,7 +396,7 @@
             </div>
             <div class="control-row">
                 <label for="maxDistance">Max Distance:</label>
-                <input type="range" id="maxDistance" min="1" max="1000" value="1000" step="1">
+                <input type="range" id="maxDistance" min="1" max="10000" value="10000" step="1">
                 <span id="maxDistanceValue">1000</span>
             </div>
             <div class="control-row">
