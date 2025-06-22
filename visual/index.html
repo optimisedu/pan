@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Visualizer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #02012e;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #visualizer {
+            background-color: #000;
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #controls {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            font-family: sans-serif;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            color: #fff;
+            font-family: sans-serif;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background-color: #2a2a2a;
+            color: #fff;
+            font-family: sans-serif;
+        }
+
+        input[type="range"] {
+            width: 150px;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #2a2a2a;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #4CAF50;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #45a049;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            font-family: sans-serif;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        label {
+            font-size: 14px;
+            color: #ccc;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="visualizer"></canvas>
+    <div id="controls">
+        <div class="control-group">
+            <label for="oscillatorType">Oscillators:</label>
+            <select id="oscillatorType">
+                <option value="sine">Sine</option>
+                <option value="square">Square</option>
+                <option value="triangle">Triangle</option>
+                <option value="sawtooth">Sawtooth</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="lfoType">LFO:</label>
+            <select id="lfoType">
+                <option value="sine">Sine</option>
+                <option value="square">Square</option>
+                <option value="triangle">Triangle</option>
+                <option value="sawtooth">Sawtooth</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="distanceModel">Distance Model:</label>
+            <select id="distanceModel">
+                <option value="linear">Linear</option>
+                <option value="inverse">Inverse</option>
+                <option value="exponential">Exponential</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="maxDistance">Max Distance: <span id="maxDistanceValue">1000</span></label>
+            <input type="range" id="maxDistance" min="100" max="10000" value="1000" step="1">
+        </div>
+
+        <div class="control-group">
+            <label for="rolloffFactor">Rolloff Factor: <span id="rolloffFactorValue">1</span></label>
+            <input type="range" id="rolloffFactor" min="0" max="10" value="1" step="0.1">
+        </div>
+
+        <button id="startButton">Start</button>
+        <button id="stopButton">Stop</button>
+    </div>
+    <script src="visualizer.js"></script>
+</body>
+</html>
